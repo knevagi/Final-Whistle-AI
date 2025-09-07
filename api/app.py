@@ -523,6 +523,7 @@ def get_articles():
     - offset: Number of articles to skip for pagination (default: 0)
     - featured: Get only featured articles (true/false)
     - search: Search in title and content
+    - fixture_id: Filter by specific fixture ID
     """
     try:
         # Get query parameters
@@ -547,6 +548,11 @@ def get_articles():
             # Search in title and content (basic search)
             query = query.or_(f'title.ilike.%{search}%,content.ilike.%{search}%')
         
+        # Filter by fixture_id if provided
+        fixture_id = request.args.get('fixture_id')
+        if fixture_id:
+            query = query.eq('fixture_id', fixture_id)
+        
         # Apply pagination
         query = query.range(offset, offset + limit - 1)
         
@@ -560,6 +566,9 @@ def get_articles():
         articles = []
         for row in result.data:
             fixture = row.get('fixtures', {})
+            
+            # Get or generate image for the article
+            article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'])
             
             # Create article object
             article = {
@@ -583,7 +592,8 @@ def get_articles():
                 ],
                 'author': 'Football Focus AI',
                 'readTime': f"{max(1, row['word_count'] // 200)} min read",
-                'featured': False  # We'll implement featured logic later
+                'featured': False,  # We'll implement featured logic later
+                'image': article_image_url
             }
             
             articles.append(article)
@@ -624,6 +634,9 @@ def get_article(article_id):
         row = result.data[0]
         fixture = row.get('fixtures', {})
         
+        # Get or generate image for the article
+        article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'])
+        
         article = {
             'id': row['id'],
             'title': row['title'],
@@ -646,7 +659,8 @@ def get_article(article_id):
                 fixture.get('competition', 'Premier League')
             ],
             'author': 'Football Focus AI',
-            'readTime': f"{max(1, row['word_count'] // 200)} min read"
+            'readTime': f"{max(1, row['word_count'] // 200)} min read",
+            'image': article_image_url
         }
         
         return jsonify({
