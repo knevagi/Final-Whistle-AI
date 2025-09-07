@@ -1,0 +1,14 @@
+crewai
+crewai-tools
+langchain
+langchain-openai
+langchain-community
+python-dotenv
+pydantic
+setuptools
+chromadb
+embedchain
+supabase
+google-generativeai
+langchain-google-genai
+Pillow
