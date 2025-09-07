@@ -5,28 +5,28 @@ import HeroPanel from '../components/HeroPanel';
 import GameweekStrip from '../components/GameweekStrip';
 
 const categories = [
-  { name: "Match Reports", count: 12, color: "bg-green-500" },
-  { name: "Player Focus", count: 8, color: "bg-blue-500" },
+  { name: "Match Reports", count: 12, color: "bg-indigo-500" },
+  { name: "Player Focus", count: 8, color: "bg-violet-500" },
   { name: "Tactical Analysis", count: 15, color: "bg-purple-500" },
-  { name: "Transfer News", count: 6, color: "bg-orange-500" },
-  { name: "Weekly Roundup", count: 4, color: "bg-red-500" }
+  { name: "Transfer News", count: 6, color: "bg-blue-500" },
+  { name: "Weekly Roundup", count: 4, color: "bg-cyan-500" }
 ];
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header/Navigation */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 bg-black border-b border-gray-800 shadow-lg">
+        <nav className="max-w-none mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-xl">⚽</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">
+              <span className="text-xl font-bold text-white">
                 Final Whistle AI
               </span>
             </div>
@@ -36,7 +36,7 @@ export default function HomePage() {
               {categories.map((category) => (
                 <button
                   key={category.name}
-                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:text-green-600"
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-gray-300 hover:text-white hover:bg-gray-800"
                 >
                   {category.name}
                 </button>
@@ -52,7 +52,7 @@ export default function HomePage() {
                   placeholder="Search articles..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-64 px-4 py-2 pl-10 text-sm bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-64 px-4 py-2 pl-10 text-sm bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-white placeholder-gray-400"
                 />
                 <svg className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -60,7 +60,7 @@ export default function HomePage() {
               </div>
 
               {/* Mobile menu button */}
-              <button className="md:hidden p-2 text-gray-700 hover:text-green-600">
+              <button className="md:hidden p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
@@ -70,7 +70,7 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-none mx-auto px-6 sm:px-8 lg:px-12 py-8">
         {/* Hero Panel - Featured Article */}
         <HeroPanel apiBaseUrl="http://localhost:5000" />
         
@@ -80,21 +80,21 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 text-white mt-20">
+        <div className="max-w-none mx-auto px-6 sm:px-8 lg:px-12 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-xl">⚽</span>
                 </div>
                 <span className="text-xl font-bold">Final Whistle AI</span>
               </div>
-              <p className="text-gray-400 mb-6 max-w-md">
+              <p className="text-slate-300 mb-6 max-w-md">
                 Your premier destination for Premier League coverage. Stay ahead of the game with the latest match reports, player analysis, and transfer news.
               </p>
               <div className="flex space-x-4">
-                <button className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-green-600 transition-colors">
+                <button className="w-10 h-10 bg-slate-700/50 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-indigo-600 transition-all duration-200 hover:scale-110">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
                   </svg>
@@ -113,7 +113,7 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Categories</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-slate-300">
                 {categories.map((category) => (
                   <li key={category.name}>
                     <button className="hover:text-white transition-colors">
@@ -125,7 +125,7 @@ export default function HomePage() {
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-slate-300">
                 <li><button className="hover:text-white transition-colors">About Us</button></li>
                 <li><button className="hover:text-white transition-colors">Contact</button></li>
                 <li><button className="hover:text-white transition-colors">Privacy Policy</button></li>
@@ -133,7 +133,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+          <div className="border-t border-slate-700/50 mt-8 pt-8 text-center text-slate-300">
             <p>&copy; 2024 Final Whistle AI. All rights reserved.</p>
           </div>
         </div>
