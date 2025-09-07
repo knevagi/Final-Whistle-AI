@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import TrendingArticles from './TrendingArticles';
 
 interface FeaturedArticle {
   id: string;
@@ -61,9 +62,19 @@ export default function HeroPanel({ apiBaseUrl = 'http://localhost:5000' }: Hero
   if (loading) {
     return (
       <section className="mb-16">
-        <div className="bg-gradient-to-br from-green-500 via-blue-600 to-purple-600 rounded-3xl p-8 md:p-12 text-white overflow-hidden min-h-[400px] flex items-center justify-center shadow-lg">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-          <span className="ml-3 text-white">Loading featured article...</span>
+        <div className="grid lg:grid-cols-10 gap-8">
+          <div className="lg:col-span-7">
+            <div className="relative bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 rounded-3xl overflow-hidden h-[600px] flex items-center justify-center shadow-2xl">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+              <span className="ml-3 text-white">Loading featured article...</span>
+            </div>
+          </div>
+          <div className="lg:col-span-3">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-slate-200/50 h-[600px] overflow-y-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-8">Trending Now</h2>
+              <TrendingArticles apiBaseUrl={apiBaseUrl} />
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -72,18 +83,28 @@ export default function HeroPanel({ apiBaseUrl = 'http://localhost:5000' }: Hero
   if (error || !featuredArticle) {
     return (
       <section className="mb-16">
-        <div className="bg-gradient-to-br from-green-500 via-blue-600 to-purple-600 rounded-3xl p-8 md:p-12 text-white overflow-hidden min-h-[400px] flex items-center justify-center shadow-lg">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Final Whistle AI
-              <span className="block text-yellow-300">Football Focus</span>
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl opacity-90">
-              Get the latest Premier League news, in-depth match analysis, player insights, and expert commentary from the beautiful game.
-            </p>
-            <button className="bg-white text-green-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-colors shadow-lg">
-              Explore Latest Articles
-            </button>
+        <div className="grid lg:grid-cols-10 gap-8">
+          <div className="lg:col-span-7">
+            <div className="relative bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 rounded-3xl overflow-hidden h-[600px] flex items-center justify-center shadow-2xl">
+              <div className="text-center p-8">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white">
+                  Final Whistle AI
+                  <span className="block text-yellow-200">Football Focus</span>
+                </h1>
+                <p className="text-xl md:text-2xl mb-8 max-w-3xl opacity-90 text-white">
+                  Get the latest Premier League news, in-depth match analysis, player insights, and expert commentary from the beautiful game.
+                </p>
+                <button className="bg-white/95 text-indigo-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white hover:scale-105 transition-all duration-200 shadow-lg backdrop-blur-sm">
+                  Explore Latest Articles
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-3">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-slate-200/50 h-[600px] overflow-y-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-8">Trending Now</h2>
+              <TrendingArticles apiBaseUrl={apiBaseUrl} />
+            </div>
           </div>
         </div>
       </section>
@@ -92,114 +113,42 @@ export default function HeroPanel({ apiBaseUrl = 'http://localhost:5000' }: Hero
 
   return (
     <section className="mb-16">
-      <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200">
-        <div className="grid lg:grid-cols-2 gap-0">
-          {/* Article Content */}
-          <div className="p-8 md:p-12 flex flex-col justify-center order-2 lg:order-1">
-            <div className="mb-4">
-              <span className="inline-block bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
-                Featured Article
-              </span>
-              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                <span>{featuredArticle.author}</span>
-                <span>•</span>
-                <span>{new Date(featuredArticle.created_at).toLocaleDateString()}</span>
-                <span>•</span>
-                <span>{featuredArticle.readTime}</span>
-              </div>
-            </div>
-            
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-              {featuredArticle.title}
-            </h1>
-            
-            <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
-              {featuredArticle.excerpt}
-            </p>
-            
-            {/* Match Info */}
-            <div className="flex items-center space-x-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <div className="text-center">
-                <div className="text-sm text-gray-600">Match</div>
-                <div className="font-bold text-gray-900">{featuredArticle.fixture_match}</div>
-              </div>
-              {featuredArticle.score && (
-                <>
-                  <div className="w-px h-8 bg-gray-300"></div>
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600">Score</div>
-                    <div className="font-bold text-green-600 text-lg">{featuredArticle.score}</div>
-                  </div>
-                </>
-              )}
-            </div>
-            
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {featuredArticle.tags.slice(0, 3).map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm border border-gray-300"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-            
-            <button 
-              onClick={() => router.push(`/article/${featuredArticle.id}`)}
-              className="bg-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transition-colors self-start shadow-lg"
-            >
-              Read Full Article →
-            </button>
-          </div>
-          
-          {/* Featured Image */}
-          <div className="relative h-64 lg:h-full min-h-[400px] order-1 lg:order-2">
-            {/* Get or generate image for the featured article */}
+      <div className="grid lg:grid-cols-10 gap-8">
+        {/* Featured Article - 70% */}
+        <div className="lg:col-span-7">
+          <div 
+            className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 cursor-pointer group h-[600px]"
+            onClick={() => router.push(`/article/${featuredArticle.id}`)}
+          >
+            {/* Background Image */}
             <div className="absolute inset-0">
               {featuredArticle.image && featuredArticle.image !== '/api/placeholder/400/250' ? (
-                <>
-                  <img
-                    src={featuredArticle.image}
-                    alt={`${featuredArticle.fixture_match} match thumbnail`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Hide the failed image
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      // Show the fallback by setting the parent's innerHTML
-                      const parent = target.parentElement!;
-                      parent.innerHTML = `
-                        <div class="absolute inset-0 bg-gradient-to-br from-green-500 via-blue-600 to-purple-600 flex items-center justify-center">
-                          <div class="text-white text-center">
-                            <div class="text-6xl mb-4">⚽</div>
-                            <div class="text-lg font-medium">${featuredArticle.fixture_match}</div>
-                            ${featuredArticle.score ? `<div class="text-2xl font-bold mt-2">${featuredArticle.score}</div>` : ''}
-                          </div>
-                          <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-                          <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+                <img
+                  src={featuredArticle.image}
+                  alt={`${featuredArticle.fixture_match} match thumbnail`}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  onError={(e) => {
+                    // Hide the failed image
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    // Show the fallback by setting the parent's innerHTML
+                    const parent = target.parentElement!;
+                    parent.innerHTML = `
+                      <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center">
+                        <div class="text-white text-center">
+                          <div class="text-6xl mb-4">⚽</div>
+                          <div class="text-lg font-medium">${featuredArticle.fixture_match}</div>
+                          ${featuredArticle.score ? `<div class="text-2xl font-bold mt-2">${featuredArticle.score}</div>` : ''}
                         </div>
-                      `;
-                    }}
-                  />
-                  
-                  {/* Overlay gradient for better text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                  
-                  {/* Match info overlay */}
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="text-white">
-                      <div className="text-lg font-medium mb-1">{featuredArticle.fixture_match}</div>
-                      {featuredArticle.score && (
-                        <div className="text-2xl font-bold">{featuredArticle.score}</div>
-                      )}
-                    </div>
-                  </div>
-                </>
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+                      </div>
+                    `;
+                  }}
+                />
               ) : (
                 // Fallback gradient design
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500 via-blue-600 to-purple-600 flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center">
                   <div className="text-white text-center">
                     <div className="text-6xl mb-4">⚽</div>
                     <div className="text-lg font-medium">{featuredArticle.fixture_match}</div>
@@ -213,14 +162,72 @@ export default function HeroPanel({ apiBaseUrl = 'http://localhost:5000' }: Hero
                   <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
                 </div>
               )}
+              
+              {/* Dark overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
             </div>
-            
-            {/* Category badge */}
+
+            {/* Content Overlay */}
+            <div className="absolute inset-0 flex flex-col justify-between p-8">
+              {/* Top Section - Category & News Source */}
+              <div className="flex items-start justify-between">
+                <span className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
+                  {featuredArticle.category}
+                </span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                    <span className="text-xs">⚽</span>
+                  </div>
+                  <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded">
+                    Final Whistle AI
+                  </span>
+                </div>
+              </div>
+
+              {/* Bottom Section - Title and Meta Info */}
+              <div className="space-y-4">
+                {/* Match Score */}
+                {featuredArticle.score && (
+                  <div className="flex items-center space-x-3">
+                    <span className="bg-black/80 backdrop-blur-sm text-white px-3 py-1 rounded-lg text-sm font-bold">
+                      {featuredArticle.score}
+                    </span>
+                    <span className="text-white/80 text-sm">
+                      {featuredArticle.fixture_match}
+                    </span>
+                  </div>
+                )}
+
+                {/* Article Title */}
+                <h1 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold leading-tight line-clamp-3 group-hover:text-yellow-200 transition-colors">
+                  {featuredArticle.title}
+                </h1>
+
+                {/* Author and Date */}
+                <div className="flex items-center space-x-4 text-base text-white/80">
+                  <span>{featuredArticle.author}</span>
+                  <span>•</span>
+                  <span>{new Date(featuredArticle.created_at).toLocaleDateString()}</span>
+                  <span>•</span>
+                  <span>{featuredArticle.readTime}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Featured Article Badge */}
             <div className="absolute top-6 left-6">
-              <span className="bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
-                {featuredArticle.category}
+              <span className="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                Featured
               </span>
             </div>
+          </div>
+        </div>
+        
+        {/* Trending Articles - 30% */}
+        <div className="lg:col-span-3">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-slate-200/50 h-[600px] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">Trending Now</h2>
+            <TrendingArticles apiBaseUrl={apiBaseUrl} />
           </div>
         </div>
       </div>
