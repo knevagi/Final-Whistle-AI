@@ -744,16 +744,27 @@ class FixtureService:
 
 async def main():
     """Main entry point for the fixture service"""
+    print("🚀 STARTING FIXTURE SERVICE MAIN FUNCTION")
+    print(f"📂 Current working directory: {os.getcwd()}")
+    print(f"🐍 Python version: {sys.version}")
+    print(f"📁 Available files: {os.listdir('.')}")
+    
     try:
-        # Initialize the service
+        print("🔧 Step 1: Initializing the service...")
         service = FixtureService()
+        print("✅ Step 1 completed: Service initialized")
         
-        # Run the processing service
+        print("🔧 Step 2: Starting the processing service...")
         await service.run_service()
         
     except Exception as e:
+        print(f"❌ ERROR in main: {e}")
+        import traceback
+        print(f"📝 Full traceback:\n{traceback.format_exc()}")
         logger.error(f"Error in main: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
+    print("🎬 ENTRY POINT: Starting fixture service script")
+    print("=" * 60)
     asyncio.run(main())
