@@ -28,7 +28,7 @@ interface HeroPanelProps {
   apiBaseUrl?: string;
 }
 
-export default function HeroPanel({ apiBaseUrl = 'http://localhost:5000' }: HeroPanelProps) {
+export default function HeroPanel({ apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }: HeroPanelProps) {
   const router = useRouter();
   const [featuredArticle, setFeaturedArticle] = useState<FeaturedArticle | null>(null);
   const [loading, setLoading] = useState(true);

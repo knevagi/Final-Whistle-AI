@@ -41,7 +41,7 @@ export default function ArticlePage() {
       setLoadingRelated(true);
       
       // Fetch articles from the same fixture (same teams and match date)
-      const response = await fetch(`http://localhost:5000/api/articles?limit=20&offset=0`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?limit=20&offset=0`);
       const data = await response.json();
       
       if (data.success) {
@@ -68,7 +68,7 @@ export default function ArticlePage() {
         setError(null);
         
         const articleId = params.id;
-        const response = await fetch(`http://localhost:5000/api/articles/${articleId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles/${articleId}`);
         const data = await response.json();
         
         if (data.success) {

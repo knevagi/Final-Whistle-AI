@@ -53,7 +53,7 @@ export default function FixturePage() {
         const fixtureId = params.id;
         
         // Fetch all articles for this fixture using the fixture_id parameter
-        const response = await fetch(`http://localhost:5000/api/articles?fixture_id=${fixtureId}&limit=50&offset=0`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/articles?fixture_id=${fixtureId}&limit=50&offset=0`);
         const data = await response.json();
         
         if (data.success) {

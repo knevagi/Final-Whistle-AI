@@ -45,7 +45,7 @@ interface GameweekReportsProps {
   specificMatchday?: number;
 }
 
-export default function GameweekReports({ apiBaseUrl = 'http://localhost:5000', specificMatchday }: GameweekReportsProps) {
+export default function GameweekReports({ apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', specificMatchday }: GameweekReportsProps) {
   const router = useRouter();
   const [gameweekData, setGameweekData] = useState<GameweekData | null>(null);
   const [loading, setLoading] = useState(true);

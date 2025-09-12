@@ -25,7 +25,7 @@ interface GameweekStripProps {
   apiBaseUrl?: string;
 }
 
-export default function GameweekStrip({ apiBaseUrl = 'http://localhost:5000' }: GameweekStripProps) {
+export default function GameweekStrip({ apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }: GameweekStripProps) {
   const router = useRouter();
   const [stripData, setStripData] = useState<GameweekStripData | null>(null);
   const [loading, setLoading] = useState(true);

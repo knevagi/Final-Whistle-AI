@@ -7,6 +7,7 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_APP_NAME": "Final Whistle AI"
+    "NEXT_PUBLIC_APP_NAME": "Final Whistle AI",
+    "NEXT_PUBLIC_API_URL": "https://final-whistle-ai-production.up.railway.app"
   }
 }

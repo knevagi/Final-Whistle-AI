@@ -26,7 +26,7 @@ interface TrendingArticlesProps {
   apiBaseUrl?: string;
 }
 
-export default function TrendingArticles({ apiBaseUrl = 'http://localhost:5000' }: TrendingArticlesProps) {
+export default function TrendingArticles({ apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000' }: TrendingArticlesProps) {
   const router = useRouter();
   const [articles, setArticles] = useState<TrendingArticle[]>([]);
   const [loading, setLoading] = useState(true);

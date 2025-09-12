@@ -72,10 +72,10 @@ export default function HomePage() {
 
       <main className="max-w-none mx-auto px-6 sm:px-8 lg:px-12 py-8">
         {/* Hero Panel - Featured Article */}
-        <HeroPanel apiBaseUrl="http://localhost:5000" />
+        <HeroPanel apiBaseUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'} />
         
         {/* Gameweek Results Strip */}
-        <GameweekStrip apiBaseUrl="http://localhost:5000" />
+        <GameweekStrip apiBaseUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'} />
 
       </main>
 
