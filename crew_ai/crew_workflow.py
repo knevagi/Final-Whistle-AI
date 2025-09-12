@@ -25,7 +25,14 @@ if not os.getenv("SERPER_API_KEY"):
 
 # Instantiate tools
 search_tool = SerperDevTool()
-rag_tool = WebsiteSearchTool()
+
+# Initialize RAG tool with error handling for Docker environments
+try:
+    rag_tool = WebsiteSearchTool()
+except PermissionError:
+    # Fallback: Use only search_tool if RAG tool fails due to permissions
+    print("⚠️ Warning: WebsiteSearchTool initialization failed due to permissions. Using SerperDevTool only.")
+    rag_tool = search_tool
 
 print(f"✅ Tools initialized:")
 print(f"  - Search Tool: {search_tool.__class__.__name__}")
@@ -741,7 +748,7 @@ class AutonomousSportsBlogCrew:
             Article Type: {article_type}
             Target Length: {target_length}
             
-            {f"CONTEXT DATA PROVIDED: Use this specific match information as the foundation for your outline:\\n{context_data}\\n" if context_data else ""}
+            {f"CONTEXT DATA PROVIDED: Use this specific match information as the foundation for your outline:{chr(10)}{context_data}{chr(10)}" if context_data else ""}
             
             Use the search tool to go into the provided urls to get the accurate information about the events of the game.
             Your outline should include:
@@ -752,7 +759,7 @@ class AutonomousSportsBlogCrew:
             5. SEO keywords and meta description
             6. Target audience and tone recommendations
             
-            {f"IMPORTANT: Base your outline on the provided context data about this specific match. Use the actual match details, scores, and information provided above." if context_data else "Focus on European football relevance, recent results, and current player news."}
+            {("IMPORTANT: Base your outline on the provided context data about this specific match. Use the actual match details, scores, and information provided above." if context_data else "Focus on European football relevance, recent results, and current player news.")}CRITICAL ERROR: SERPER_API_KEY not found!
             Include specific leagues, teams, and players where relevant.
             """,
             agent=self._create_content_planner(),
@@ -765,7 +772,7 @@ class AutonomousSportsBlogCrew:
             description=f"""
             Using the detailed outline provided, write a complete European football blog article about: {topic}
             
-            {f"CONTEXT DATA FOR REFERENCE: Base your article on this specific match information:\\n{context_data}\\n" if context_data else ""}
+            {f"CONTEXT DATA FOR REFERENCE: Base your article on this specific match information:{chr(10)}{context_data}{chr(10)}" if context_data else ""}
             Use the search tool to go into the provided urls to get the accurate information about the events of the game.
             Requirements:
             - Follow the outline structure exactly
@@ -777,7 +784,7 @@ class AutonomousSportsBlogCrew:
             - Include a compelling headline and introduction
             - End with a strong conclusion
             - Reference specific matches, players, and teams accurately
-            {f"- CRITICAL: Use the specific match data provided in the context to ensure accuracy and relevance" if context_data else ""}
+            {"- CRITICAL: Use the specific match data provided in the context to ensure accuracy and relevance" if context_data else ""}
             
             Make the content accessible to both casual European football fans and dedicated followers.
             Focus on recent events, current form, and emerging storylines.
