@@ -26,4 +26,9 @@ RUN useradd --create-home --shell /bin/bash app
 RUN chown -R app:app /app
 USER app
 
+# Debug: Show what files are available
+RUN ls -la
+RUN ls -la fixture_service/ || echo "fixture_service directory not found"
+
+# Run the fixture service
 CMD ["python", "fixture_service/fixture_service.py"]
