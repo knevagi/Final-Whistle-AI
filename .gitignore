@@ -349,3 +349,58 @@ yarn.lock.bak
 
 # Turbopack cache
 .turbo/
+
+# Python virtual environments in subdirectories
+api/venv/
+crew_ai/venv/
+**/venv/
+
+# Python cache and bytecode in subdirectories
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Database files - ChromaDB vector databases
+**/db/
+**/chroma.sqlite3
+crew_ai/db/
+crew_ai/fixture_service/db/
+
+# AI-generated content and data directories
+**/generated_articles/
+**/my_articles/
+**/topic_data/
+**/match_data/
+
+# Environment template files (they contain example API keys)
+**/env_template.txt
+
+# Log files in subdirectories
+**/fixture_service.log
+**/*.log
+
+# Lock files in subdirectories
+**/crewai-rag-tool.lock
+
+# SQL files (except schema files)
+**/*fixtures*.sql
+!**/schema.sql
+
+# Image files in specific directories (but keep public images)
+api/images/
+**/generated_images/
+**/image_cache/
+
+# Development and test files
+**/*test*.py
+!**/test_api.py
+**/surplus_files/
+
+# Railway deployment files (since they contain deployment configs)
+.railway/
+
+# OS and editor files
+.DS_Store
+._*
+Thumbs.db
