@@ -31,7 +31,7 @@ class FixtureServiceConfig:
     
     # Service intervals (in seconds)
     SYNC_INTERVAL = int(os.getenv('SYNC_INTERVAL', '3600'))  # 1 hour
-    PROCESSING_INTERVAL = int(os.getenv('PROCESSING_INTERVAL', '300'))  # 5 minutes
+    PROCESSING_INTERVAL = int(os.getenv('PROCESSING_INTERVAL', '3600'))  # 60 minutes
     
     # Competition settings
     DEFAULT_COMPETITION = os.getenv('DEFAULT_COMPETITION', 'Premier League')

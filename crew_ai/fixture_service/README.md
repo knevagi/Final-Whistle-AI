@@ -76,7 +76,7 @@ API_FOOTBALL_KEY=your_api_football_key_here
 
 # Service intervals (in seconds)
 SYNC_INTERVAL=3600          # 1 hour
-PROCESSING_INTERVAL=300     # 5 minutes
+PROCESSING_INTERVAL=3600     # 60 minutes
 
 # Competition settings
 DEFAULT_COMPETITION=Premier League

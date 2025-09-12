@@ -716,7 +716,7 @@ class FixtureService:
         except Exception as e:
             logger.error(f"Error during fixture processing: {e}")
     
-    async def run_service(self, processing_interval: int = 300):
+    async def run_service(self, processing_interval: int = 3600):
         """
         Run the fixture service continuously to process all completed fixtures
         

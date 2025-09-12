@@ -88,7 +88,7 @@ Examples:
     
     # Configuration arguments
     parser.add_argument('--process-interval', type=int,
-                       help='Processing interval in seconds (default: 300)')
+                       help='Processing interval in seconds (default: 3600)')
     
     # Parse arguments
     args = parser.parse_args()

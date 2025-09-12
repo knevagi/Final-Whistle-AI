@@ -27,7 +27,7 @@ class Config:
     MAX_PAGE_SIZE = 100
     
     # Cache settings
-    CACHE_TIMEOUT = 300  # 5 minutes
+    CACHE_TIMEOUT = 3600  # 60 minutes
     
     @classmethod
     def validate_config(cls) -> Dict[str, Any]:
