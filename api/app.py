@@ -590,7 +590,7 @@ def get_articles():
                     fixture.get('away_team', ''),
                     fixture.get('competition', 'Premier League')
                 ],
-                'author': 'Football Focus AI',
+                'author': 'Final Whistle AI',
                 'readTime': f"{max(1, row['word_count'] // 200)} min read",
                 'featured': False,  # We'll implement featured logic later
                 'image': article_image_url
@@ -658,7 +658,7 @@ def get_article(article_id):
                 fixture.get('away_team', ''),
                 fixture.get('competition', 'Premier League')
             ],
-            'author': 'Football Focus AI',
+            'author': 'Final Whistle AI',
             'readTime': f"{max(1, row['word_count'] // 200)} min read",
             'image': article_image_url
         }
@@ -831,7 +831,7 @@ def get_featured_article():
                 fixture.get('away_team', ''),
                 fixture.get('competition', 'Premier League')
             ],
-            'author': 'Football Focus AI',
+            'author': 'Final Whistle AI',
             'readTime': f"{max(1, row['word_count'] // 200)} min read",
             'featured': True,
             'image': article_image_url
@@ -931,7 +931,7 @@ def get_latest_gameweek_match_reports():
                     f"Matchday {fixture.get('matchday', 0)}",
                     fixture.get('competition', 'Premier League')
                 ],
-                'author': 'Football Focus AI',
+                'author': 'Final Whistle AI',
                 'readTime': f"{max(1, row['word_count'] // 200)} min read",
                 'image': article_image_url
             }
@@ -1031,7 +1031,7 @@ def get_gameweek_match_reports(matchday):
                     f"Matchday {fixture.get('matchday', 0)}",
                     fixture.get('competition', 'Premier League')
                 ],
-                'author': 'Football Focus AI',
+                'author': 'Final Whistle AI',
                 'readTime': f"{max(1, row['word_count'] // 200)} min read",
                 'image': article_image_url
             }

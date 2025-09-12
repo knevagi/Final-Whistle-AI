@@ -177,7 +177,7 @@ def get_articles():
                     fixture.get('away_team', ''),
                     fixture.get('competition', 'Premier League')
                 ],
-                'author': 'Football Focus AI',
+                'author': 'Final Whistle AI',
                 'readTime': f"{max(1, row['word_count'] // 200)} min read",
                 'featured': False
             }
@@ -275,7 +275,7 @@ def get_latest_gameweek_match_reports():
                     f"Matchday {fixture.get('matchday', 0)}",
                     fixture.get('competition', 'Premier League')
                 ],
-                'author': 'Football Focus AI',
+                'author': 'Final Whistle AI',
                 'readTime': f"{max(1, row['word_count'] // 200)} min read",
                 'image': f"/api/placeholder/400/250"
             }

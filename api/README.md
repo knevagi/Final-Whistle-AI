@@ -120,7 +120,7 @@ Error responses:
       "match_date": "2025-01-15",
       "score": "2-1",
       "competition": "Premier League",
-      "author": "Football Focus AI",
+      "author": "Final Whistle AI",
       "readTime": "5 min read",
       "created_at": "2025-01-15T20:30:00",
       "tags": ["Manchester United", "Arsenal", "Premier League"]
@@ -180,7 +180,7 @@ Error responses:
         "venue": "Old Trafford",
         "matchday": 1,
         "tags": ["Manchester United", "Arsenal", "Matchday 1"],
-        "author": "Football Focus AI",
+        "author": "Final Whistle AI",
         "readTime": "5 min read"
       }
     ],

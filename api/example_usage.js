@@ -189,7 +189,7 @@ function GameweekSummary({ summary, matchday }) {
         "match_date": "2025-08-15",
         "competition": "Premier League",
         "tags": ["Manchester United", "Arsenal", "Matchday 1"],
-        "author": "Football Focus AI",
+        "author": "Final Whistle AI",
         "readTime": "5 min read"
       }
     ],
