@@ -89,7 +89,7 @@ export default function HeroPanel({ apiBaseUrl = process.env.NEXT_PUBLIC_API_URL
               <div className="text-center p-8">
                 <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-white">
                   Final Whistle AI
-                  <span className="block text-yellow-200">Football Focus</span>
+                  <span className="block text-yellow-200">Final Whistle AI</span>
                 </h1>
                 <p className="text-xl md:text-2xl mb-8 max-w-3xl opacity-90 text-white">
                   Get the latest Premier League news, in-depth match analysis, player insights, and expert commentary from the beautiful game.

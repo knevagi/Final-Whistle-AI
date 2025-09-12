@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Football Focus | Premier League News, Match Reports & Analysis",
+  title: "Final Whistle AI | Premier League News, Match Reports & Analysis",
   description: "Your premier destination for English football coverage. Get the latest Premier League news, in-depth match reports, expert analysis, and trending topics from the world of football.",
   keywords: "football, premier league, match reports, football analysis, football news, soccer, manchester united, liverpool, arsenal, chelsea",
-  authors: [{ name: "Football Focus Editorial Team" }],
+  authors: [{ name: "Final Whistle AI Editorial Team" }],
   openGraph: {
-    title: "Football Focus - Premier League Coverage",
+    title: "Final Whistle AI - Premier League Coverage",
     description: "Latest Premier League news, match reports, and expert football analysis",
     type: "website",
   },
