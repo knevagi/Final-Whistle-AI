@@ -228,7 +228,6 @@ export default function ArticlePage() {
             {/* Article Meta */}
             <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-200/50">
               <div className="flex items-center space-x-4 text-base text-slate-600">
-                <span>{article.word_count} words</span>
                 <span>•</span>
                 <span>Published {formatDate(article.created_at)}</span>
               </div>
