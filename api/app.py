@@ -42,7 +42,33 @@ genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-api:Client = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_KEY'))
+
+# Initialize Supabase client
+def get_supabase_client():
+    """Get a fresh Supabase client instance"""
+    return create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_KEY'))
+
+# Create initial client
+api:Client = get_supabase_client()
+
+# Helper function for database operations with automatic reconnection
+def execute_with_retry(operation, max_retries=3):
+    """Execute a database operation with automatic reconnection on failure"""
+    for attempt in range(max_retries):
+        try:
+            return operation()
+        except Exception as e:
+            error_str = str(e).lower()
+            if "server disconnected" in error_str or "connection" in error_str or "timeout" in error_str:
+                logger.warning(f"Database connection issue on attempt {attempt + 1}: {e}")
+                if attempt < max_retries - 1:
+                    # Recreate the client and retry
+                    global api
+                    api = get_supabase_client()
+                    logger.info(f"Recreated Supabase client, retrying...")
+                    continue
+            raise e
+    return None
 
 # Helper functions for image generation and storage
 def ensure_images_directory():
@@ -112,395 +138,47 @@ def ensure_supabase_bucket():
         print(f"ERROR: Error type: {type(e).__name__}")
         return False
 
-def store_image_locally(article_id: str, image_data: bytes) -> Optional[str]:
-    """Store image locally in the images folder"""
-    try:
-        images_dir = ensure_images_directory()
-        local_path = os.path.join(images_dir, f"{article_id}.jpg")
-        
-        # Write the image data to local file
-        with open(local_path, 'wb') as f:
-            f.write(image_data)
-        
-        print(f"SUCCESS: Stored image locally for article {article_id} at {local_path}")
-        return local_path
-        
-    except Exception as e:
-        print(f"ERROR: Failed to store image locally for article {article_id}: {e}")
-        return None
+# Removed local image storage function - now only using Supabase storage
 
-def check_image_exists_in_storage(article_id: str) -> bool:
-    """Check if an image exists in Supabase storage or locally for the given article ID"""
-    try:
-        # First check if image exists locally
-        images_dir = ensure_images_directory()
-        local_path = os.path.join(images_dir, f"{article_id}.jpg")
-        if os.path.exists(local_path):
-            print(f"DEBUG: Found local image for article {article_id}")
-            return True
-        
-        # Then check Supabase storage
-        response = api.storage.from_('article-images').download(f"{article_id}.jpg")
-        if response is not None:
-            print(f"DEBUG: Found Supabase image for article {article_id}")
-            return True
-            
-        print(f"DEBUG: No image found for article {article_id}")
-        return False
-    except Exception as e:
-        print(f"DEBUG: Image not found for article {article_id}: {e}")
-        return False
+# Removed image existence check function - simplified to only check Supabase
 
-def generate_image_with_gemini(article_title: str, article_content: str = "") -> Optional[bytes]:
-    """Generate an image using Gemini 2.5 Flash Image Preview based on article title and content"""
-    try:
-        # Extract key information from article content for more accurate image generation
-        content_summary = ""
-        if article_content:
-            # Take first 200 characters of content for context
-            content_summary = article_content[:200] + "..." if len(article_content) > 200 else article_content
-        
-        # Create a detailed prompt for football-related image generation
-        prompt = f"""Create a professional football match thumbnail image for the article titled: "{article_title}". 
-        
-        Article context: {content_summary}
-        
-        The image should be:
-        - 400x250 pixels
-        - Professional sports photography style
-        - Football/soccer themed
-        - High quality and engaging
-        - Suitable for a sports blog thumbnail
-        - Clean and modern design with football elements like stadium, players, or match action
-        - Dynamic and exciting composition
-        - There should not be any text in the image
-        - Professional lighting and colors
-        - Reflect the specific match or teams mentioned in the article context"""
-        
-        # Use Gemini's image generation model
-        model = genai.GenerativeModel('gemini-2.5-flash-image-preview')
-        
-        # First, test if the model can handle basic text generation
-        print("DEBUG: Testing model with simple text generation first...")
-        try:
-            test_response = model.generate_content("Hello, can you generate images?")
-            print(f"DEBUG: Model test successful: {test_response.text[:100]}...")
-        except Exception as test_error:
-            print(f"ERROR: Model test failed: {test_error}")
-            print("ERROR: Model may not be available or accessible")
-            return None
-        
-        # Generate the image using the prompt
-        print(f"DEBUG: Attempting to generate image with prompt: {prompt[:100]}...")
-        try:
-            response = model.generate_content(prompt)
-            print(f"DEBUG: API call successful, response type: {type(response)}")
-        except Exception as api_error:
-            print(f"ERROR: API call failed: {api_error}")
-            print(f"DEBUG: Error type: {type(api_error)}")
-            print(f"DEBUG: Full error details: {str(api_error)}")
-            
-            # Check if it's a server error
-            if "500" in str(api_error) or "Internal" in str(api_error):
-                print("ERROR: Google API server error - this is a temporary issue on Google's side")
-                print("ERROR: The gemini-2.5-flash-image-preview model may not support image generation")
-                print("ERROR: Falling back to placeholder image")
-                return None
-            
-            # Try alternative approach with explicit generation config
-            try:
-                print("DEBUG: Trying alternative API call with generation config...")
-                response = model.generate_content(
-                    prompt,
-                    generation_config={
-                        'max_output_tokens': 8192,
-                        'temperature': 0.7,
-                    }
-                )
-                print(f"DEBUG: Alternative API call successful")
-            except Exception as alt_error:
-                print(f"ERROR: Alternative API call also failed: {alt_error}")
-                print(f"ERROR: Both API calls failed, using fallback image")
-                return None
-        
-        # Check if the response contains image data
-        print(f"DEBUG: Response has parts: {hasattr(response, 'parts')}")
-        if hasattr(response, 'parts') and response.parts:
-            print(f"DEBUG: Number of parts: {len(response.parts)}")
-            for i, part in enumerate(response.parts):
-                print(f"DEBUG: Part {i} attributes: {dir(part)}")
-                
-                # Check all possible ways the part might contain image data
-                if hasattr(part, 'inline_data') and part.inline_data:
-                    print(f"DEBUG: Part {i} has inline_data with attributes: {dir(part.inline_data)}")
-                    if hasattr(part.inline_data, 'mime_type'):
-                        print(f"DEBUG: inline_data mime_type: {part.inline_data.mime_type}")
-                
-                if hasattr(part, 'inline_data') and part.inline_data:
-                    # Extract image data
-                    image_data = part.inline_data.data
-                    print(f"DEBUG: Found inline_data for article: {article_title}")
-                    print(f"DEBUG: Raw image_data type: {type(image_data)}")
-                    print(f"DEBUG: Raw image_data length: {len(image_data) if image_data else 0}")
-                    print(f"DEBUG: Raw image_data first 100 chars: {str(image_data)[:100] if image_data else 'None'}")
-                    
-                    try:
-                        # Check if data is already in bytes format (PNG/JPEG headers) or needs base64 decoding
-                        if isinstance(image_data, bytes):
-                            # Data is already in bytes format, use it directly
-                            decoded_data = image_data
-                            print(f"DEBUG: Image data is already in bytes format ({len(decoded_data)} bytes)")
-                        else:
-                            # Data needs base64 decoding
-                            decoded_data = base64.b64decode(image_data)
-                            print(f"DEBUG: Decoded base64 data length: {len(decoded_data)} bytes")
-                        
-                        print(f"DEBUG: First 20 bytes: {decoded_data[:20]}")
-                        
-                        # More flexible validation for different image formats
-                        is_valid_image = False
-                        image_format = "unknown"
-                        
-                        if decoded_data.startswith(b'\xff\xd8'):  # JPEG
-                            is_valid_image = True
-                            image_format = "JPEG"
-                        elif decoded_data.startswith(b'\x89\x50\x4e\x47'):  # PNG
-                            is_valid_image = True
-                            image_format = "PNG"
-                        elif decoded_data.startswith(b'RIFF') and b'WEBP' in decoded_data[:12]:  # WebP
-                            is_valid_image = True
-                            image_format = "WebP"
-                        elif decoded_data.startswith(b'GIF87a') or decoded_data.startswith(b'GIF89a'):  # GIF
-                            is_valid_image = True
-                            image_format = "GIF"
-                        elif len(decoded_data) > 1000:  # If it's large enough, might be a valid image
-                            is_valid_image = True
-                            image_format = "Unknown but large"
-                        
-                        if is_valid_image:
-                            print(f"SUCCESS: Valid {image_format} image data detected ({len(decoded_data)} bytes)")
-                            return decoded_data
-                        else:
-                            print(f"WARNING: Invalid image data detected ({len(decoded_data)} bytes)")
-                            print(f"DEBUG: Data doesn't match known image headers")
-                            
-                            # If the data is very small, it might be an error message
-                            if len(decoded_data) < 500:
-                                try:
-                                    error_text = decoded_data.decode('utf-8', errors='ignore')
-                                    print(f"DEBUG: Small response might be text: {error_text}")
-                                except:
-                                    pass
-                            return None
-                            
-                    except Exception as decode_error:
-                        print(f"ERROR: Failed to decode image data: {decode_error}")
-                        return None
-                elif hasattr(part, 'text') and part.text:
-                    # Check if the text contains base64 image data
-                    text_content = part.text
-                    print(f"DEBUG: Part {i} text content: {text_content[:200]}...")
-                    print(f"DEBUG: Full text length: {len(text_content)}")
-                    
-                    # Check for various image data formats in text
-                    if 'data:image' in text_content or 'base64' in text_content.lower():
-                        print(f"SUCCESS: Found image data in text response for article: {article_title}")
-                        # Extract base64 data from text
-                        import re
-                        base64_match = re.search(r'data:image/[^;]+;base64,([A-Za-z0-9+/=]+)', text_content)
-                        if base64_match:
-                            try:
-                                decoded_data = base64.b64decode(base64_match.group(1))
-                                if len(decoded_data) > 100 and decoded_data.startswith(b'\xff\xd8'):
-                                    print(f"DEBUG: Valid JPEG image data from text ({len(decoded_data)} bytes)")
-                                    return decoded_data
-                                else:
-                                    print(f"WARNING: Invalid image data from text ({len(decoded_data)} bytes)")
-                                    return None
-                            except Exception as decode_error:
-                                print(f"ERROR: Failed to decode image data from text: {decode_error}")
-                                return None
-        
-        # Try alternative approach - check if response has text that might contain image data
-        if hasattr(response, 'text') and response.text:
-            print(f"INFO: Gemini response text: {response.text[:500]}...")
-        
-        # Check if there are other attributes we might have missed
-        print(f"DEBUG: Response object attributes: {dir(response)}")
-        if hasattr(response, 'candidates') and response.candidates:
-            print(f"DEBUG: Response has {len(response.candidates)} candidates")
-            for i, candidate in enumerate(response.candidates):
-                print(f"DEBUG: Candidate {i} attributes: {dir(candidate)}")
-                if hasattr(candidate, 'content') and candidate.content:
-                    print(f"DEBUG: Candidate {i} content attributes: {dir(candidate.content)}")
-        
-        # If no image data found, create a fallback image using PIL
-        print(f"WARNING: No image data returned from Gemini for article: {article_title}")
-        print(f"DEBUG: This might indicate the model returned only text or an error")
-        
-        # Create a fallback image with article title
-        try:
-            img = Image.new('RGB', (400, 250), color='#1e40af')  # Blue background
-            
-            # You could add text rendering here if needed
-            # For now, just return the basic image
-            img_buffer = io.BytesIO()
-            img.save(img_buffer, format='JPEG', quality=85)
-            img_buffer.seek(0)
-            
-            print(f"INFO: Created proper fallback image for article: {article_title}")
-            return img_buffer.getvalue()
-        except Exception as fallback_error:
-            print(f"ERROR: Error creating fallback image: {fallback_error}")
-            return None
-        
-    except Exception as e:
-        error_msg = str(e)
-        if "429" in error_msg or "quota" in error_msg.lower():
-            print(f"ERROR: Gemini API quota exceeded. Please wait or upgrade your plan. Error: {e}")
-        elif "not supported" in error_msg.lower() or "cannot generate" in error_msg.lower():
-            print(f"ERROR: Image generation not supported with current model. Error: {e}")
-        else:
-            print(f"ERROR: Error generating image with Gemini: {e}")
-        return None
+# Removed Gemini image generation function - now only using Supabase storage
 
-def upload_image_to_storage(article_id: str, image_data: bytes) -> Optional[str]:
-    """Upload image to Supabase storage and store locally, return the public URL"""
+# Removed image upload function - now only reading from Supabase storage
+
+def get_article_image_url(article_id: str) -> str:
+    """Get article image URL from Supabase storage only"""
     try:
-        # First store the image locally
-        local_path = store_image_locally(article_id, image_data)
-        if local_path:
-            print(f"INFO: Image stored locally at {local_path}")
+        def get_public_url():
+            return api.storage.from_('article-images').get_public_url(f"{article_id}.jpg")
         
-        # Check if Supabase bucket exists before trying to upload
-        if not ensure_supabase_bucket():
-            print(f"WARNING: Supabase bucket not available, skipping upload for article {article_id}")
-            return None
-        
-        # Upload the image to Supabase storage
-        response = api.storage.from_('article-images').upload(
-            f"{article_id}.jpg",
-            image_data,
-            file_options={"content-type": "image/jpeg"}
-        )
-        
-        if response:
-            # Get the public URL
-            public_url = api.storage.from_('article-images').get_public_url(f"{article_id}.jpg")
-            print(f"SUCCESS: Uploaded image for article {article_id}")
-            print(f"DEBUG: Upload public URL: {public_url}")
+        public_url = execute_with_retry(get_public_url)
+        if public_url:
+
+            print(f"INFO: Found Supabase image for article {article_id}")
             
             # Handle different URL formats
             if isinstance(public_url, dict) and 'publicUrl' in public_url:
                 actual_url = clean_supabase_url(public_url['publicUrl'])
                 if actual_url:
-                    print(f"DEBUG: Extracted upload URL: {actual_url}")
                     return actual_url
             elif isinstance(public_url, str):
                 clean_url = clean_supabase_url(public_url)
                 if clean_url:
-                    print(f"DEBUG: Direct upload URL: {clean_url}")
                     return clean_url
             
-            print(f"WARNING: Unexpected or invalid upload URL format: {public_url}")
-            # Fallback to manual construction
+            # Fallback to manual URL construction
             supabase_url = os.getenv('SUPABASE_URL')
             if supabase_url:
                 manual_url = f"{supabase_url}/storage/v1/object/public/article-images/{article_id}.jpg"
-                print(f"DEBUG: Manual upload URL: {manual_url}")
                 return manual_url
-            return str(public_url)
-        else:
-            print(f"ERROR: Failed to upload image for article {article_id}")
-            return None
-            
-    except Exception as e:
-        print(f"ERROR: Error uploading image for article {article_id}: {e}")
-        return None
-
-def get_or_generate_article_image(article_id: str, article_title: str, article_content: str = "") -> str:
-    """Get existing image or generate new one for article"""
-    try:
-        # Step 1: Check if Supabase bucket exists
-        if not ensure_supabase_bucket():
-            print(f"WARNING: Supabase bucket not available, skipping Supabase check for article {article_id}")
-            # Skip to local check
-        else:
-            # Step 2: Check if image exists in Supabase storage
-            try:
-                # First check if the file exists in the bucket
-                files_response = api.storage.from_('article-images').list()
-                file_exists = any(file['name'] == f"{article_id}.jpg" for file in files_response)
-                
-                if file_exists:
-                    # Image exists in Supabase, return the URL
-                    public_url = api.storage.from_('article-images').get_public_url(f"{article_id}.jpg")
-                    print(f"INFO: Using existing Supabase image for article {article_id}")
-                    print(f"DEBUG: Supabase public URL: {public_url}")
-                    
-                    # Check if the URL format is correct and try to fix it if needed
-                    if isinstance(public_url, dict) and 'publicUrl' in public_url:
-                        actual_url = clean_supabase_url(public_url['publicUrl'])
-                        if actual_url:
-                            print(f"DEBUG: Extracted public URL: {actual_url}")
-                            return actual_url
-                    elif isinstance(public_url, str):
-                        clean_url = clean_supabase_url(public_url)
-                        if clean_url:
-                            print(f"DEBUG: Direct public URL: {clean_url}")
-                            return clean_url
-                    
-                    print(f"WARNING: Unexpected or invalid URL format: {public_url}")
-                    # Try to construct the URL manually
-                    supabase_url = os.getenv('SUPABASE_URL')
-                    if supabase_url:
-                        manual_url = f"{supabase_url}/storage/v1/object/public/article-images/{article_id}.jpg"
-                        print(f"DEBUG: Manual URL construction: {manual_url}")
-                        return manual_url
-                else:
-                    print(f"DEBUG: No Supabase image found for article {article_id} - file not in bucket")
-            except Exception as e:
-                print(f"DEBUG: Error checking Supabase storage for article {article_id}: {e}")
         
-        # Step 3: Check if image exists locally
-        try:
-            images_dir = ensure_images_directory()
-            local_path = os.path.join(images_dir, f"{article_id}.jpg")
-            if os.path.exists(local_path):
-                # Serve local image via API endpoint
-                local_url = f"/api/images/{article_id}.jpg"
-                print(f"INFO: Using local image for article {article_id}: {local_url}")
-                return local_url
-            else:
-                print(f"DEBUG: No local image found for article {article_id}")
-        except Exception as e:
-            print(f"DEBUG: Error checking local image for article {article_id}: {e}")
-        
-        # Step 4: Generate new image using Gemini API
-        print(f"INFO: Generating new image for article {article_id}: {article_title}")
-        image_data = generate_image_with_gemini(article_title, article_content)
-        
-        if image_data:
-            # Step 5: Store both locally and in Supabase storage (if bucket exists)
-            if ensure_supabase_bucket():
-                image_url = upload_image_to_storage(article_id, image_data)
-                if image_url:
-                    print(f"SUCCESS: Generated and stored image for article {article_id}")
-                    return image_url
-            else:
-                # Just store locally if Supabase bucket is not available
-                local_path = store_image_locally(article_id, image_data)
-                if local_path:
-                    local_url = f"/api/images/{article_id}.jpg"
-                    print(f"SUCCESS: Generated and stored image locally for article {article_id}")
-                    return local_url
-        
-        # Fallback to placeholder if generation fails
-        print(f"WARNING: Image generation failed for article {article_id}, using placeholder")
+        # No image found, return placeholder
+        print(f"INFO: No image found for article {article_id}, using placeholder")
         return f"/api/placeholder/400/250"
         
     except Exception as e:
-        print(f"ERROR: Error getting/generating image for article {article_id}: {e}")
+        print(f"ERROR: Error getting image for article {article_id}: {e}")
         return f"/api/placeholder/400/250"
 
 @app.route('/health', methods=['GET'])
@@ -559,16 +237,19 @@ def get_articles():
         # Order by creation date (newest first)
         query = query.order('created_at', desc=True)
         
-        # Execute query
-        result = query.execute()
+        # Execute query with retry
+        def execute_articles_query():
+            return query.execute()
+        
+        result = execute_with_retry(execute_articles_query)
         
         # Transform the data for frontend
         articles = []
         for row in result.data:
             fixture = row.get('fixtures', {})
             
-            # Get or generate image for the article
-            article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'])
+            # Get image URL for the article
+            article_image_url = get_article_image_url(row['id'])
             
             # Create article object
             article = {
@@ -635,7 +316,7 @@ def get_article(article_id):
         fixture = row.get('fixtures', {})
         
         # Get or generate image for the article
-        article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'])
+        article_image_url = get_article_image_url(row['id'])
         
         article = {
             'id': row['id'],
@@ -795,10 +476,13 @@ def get_featured_article():
     try:
         # For now, get the most recent article as featured
         # Later we can add a featured flag to the database
-        result = api.table('generated_articles').select(
-            'id, title, content, article_type, word_count, created_at, '
-            'fixtures!inner(home_team, away_team, match_date, home_score, away_score, competition)'
-        ).order('created_at', desc=True).limit(1).execute()
+        def get_featured_data():
+            return api.table('generated_articles').select(
+                'id, title, content, article_type, word_count, created_at, '
+                'fixtures!inner(home_team, away_team, match_date, home_score, away_score, competition)'
+            ).order('created_at', desc=True).limit(1).execute()
+        
+        result = execute_with_retry(get_featured_data)
         
         if not result.data:
             return jsonify({
@@ -810,7 +494,7 @@ def get_featured_article():
         fixture = row.get('fixtures', {})
         
         # Get or generate image for the article
-        article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'])
+        article_image_url = get_article_image_url(row['id'])
         
         article = {
             'id': row['id'],
@@ -903,8 +587,8 @@ def get_latest_gameweek_match_reports():
             else:
                 result_value = ''
             
-            # Get or generate image for the article
-            article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'])
+            # Get image URL for the article
+            article_image_url = get_article_image_url(row['id'])
             match_report = {
                 'id': row['id'],
                 'title': row['title'],
@@ -1002,8 +686,8 @@ def get_gameweek_match_reports(matchday):
             else:
                 result_value = ''
             
-            # Get or generate image for the article
-            article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'])
+            # Get image URL for the article
+            article_image_url = get_article_image_url(row['id'])
             
             match_report = {
                 'id': row['id'],
@@ -1069,15 +753,21 @@ def get_gameweek_strip():
     """Get one match report per fixture for latest gameweek - optimized for horizontal strip display"""
     try:
         # Get the latest completed gameweek with match reports
-        latest_fixture = api.table('fixtures').select(
-            'matchday, match_date, generated_articles!inner(fixture_id)'
-        ).order('match_date', desc=True).limit(1).execute()
+        def get_latest_fixture():
+            return api.table('fixtures').select(
+                'matchday, match_date, generated_articles!inner(fixture_id)'
+            ).order('match_date', desc=True).limit(1).execute()
+        
+        latest_fixture = execute_with_retry(get_latest_fixture)
         
         if not latest_fixture.data:
             # Fallback: get the highest matchday with completed fixtures
-            result = api.table('fixtures').select(
-                'matchday'
-            ).not_.is_('home_score', 'null').order('matchday', desc=True).limit(1).execute()
+            def get_fallback_matchday():
+                return api.table('fixtures').select(
+                    'matchday'
+                ).not_.is_('home_score', 'null').order('matchday', desc=True).limit(1).execute()
+            
+            result = execute_with_retry(get_fallback_matchday)
             
             if not result.data:
                 return jsonify({
@@ -1090,10 +780,13 @@ def get_gameweek_strip():
             latest_matchday = latest_fixture.data[0]['matchday']
         
         # Get one match report per fixture for this gameweek (distinct fixture_id)
-        gameweek_articles = api.table('generated_articles').select(
-            'id, title, fixture_id, '
-            'fixtures!inner(id, home_team, away_team, home_score, away_score, match_date)'
-        ).eq('fixtures.matchday', latest_matchday).eq('article_type', 'match_report').order('match_date', desc=False, foreign_table='fixtures').execute()
+        def get_gameweek_articles():
+            return api.table('generated_articles').select(
+                'id, title, fixture_id, '
+                'fixtures!inner(id, home_team, away_team, home_score, away_score, match_date)'
+            ).eq('fixtures.matchday', latest_matchday).eq('article_type', 'match_report').order('match_date', desc=False, foreign_table='fixtures').execute()
+        
+        gameweek_articles = execute_with_retry(get_gameweek_articles)
         
         # Create unique fixtures list (one article per fixture)
         strip_cards = []
@@ -1113,8 +806,8 @@ def get_gameweek_strip():
             home_team = fixture.get('home_team', '')
             away_team = fixture.get('away_team', '')
             
-            # Get or generate image for the article
-            article_image_url = get_or_generate_article_image(row['id'], row['title'], row['content'] if 'content' in row else '')
+            # Get image URL for the article
+            article_image_url = get_article_image_url(row['id'])
             
             strip_card = {
                 'id': row['id'],
@@ -1145,6 +838,48 @@ def get_gameweek_strip():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/api/placeholder/<int:width>/<int:height>', methods=['GET'])
+def serve_placeholder_image(width, height):
+    """Serve a placeholder image"""
+    try:
+        from flask import send_file
+        import io
+        
+        # Create a simple placeholder image
+        img = Image.new('RGB', (width, height), color='#1e40af')  # Blue background
+        
+        # Add some text if possible
+        try:
+            from PIL import ImageDraw, ImageFont
+            draw = ImageDraw.Draw(img)
+            
+            # Try to use a default font
+            try:
+                font = ImageFont.truetype("arial.ttf", 20)
+            except:
+                font = ImageFont.load_default()
+            
+            text = "No Image"
+            # Get text size and center it
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            x = (width - text_width) // 2
+            y = (height - text_height) // 2
+            
+            draw.text((x, y), text, fill='white', font=font)
+        except:
+            pass  # If text rendering fails, just return the blue image
+        
+        img_buffer = io.BytesIO()
+        img.save(img_buffer, format='JPEG', quality=85)
+        img_buffer.seek(0)
+        
+        return send_file(img_buffer, mimetype='image/jpeg')
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/images/<filename>', methods=['GET'])
 def serve_local_image(filename):
@@ -1241,7 +976,7 @@ def test_image_access(article_id):
         import requests
         
         # Try the cleaned URL
-        cleaned_url = get_or_generate_article_image(article_id, "Test", "Test article content for image generation")
+        cleaned_url = get_article_image_url(article_id)
         
         # Test if the URL is accessible
         try:
